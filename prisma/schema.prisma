@@ -22,7 +22,7 @@ model User {
   email      String @unique
   password   String
 
-  role UserRole @default(BUYER)
+  role UserRole @default(CUSTOMER)
 
   adresses Adress[]
 
@@ -168,5 +168,5 @@ model RefreshToken {
 enum UserRole {
   ADMIN
   CUSTOMER
-  BUYER
+  VENDOR
 }

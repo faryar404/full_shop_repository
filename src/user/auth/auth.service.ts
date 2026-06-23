@@ -82,7 +82,7 @@ export class AuthService {
 
     const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
 
-    const stored = await this.prismaService.refreshToken.findFirst({
+    const stored = await this.prismaService.refreshToken.findMany({
         where: {
             tokenHash,
         },
@@ -92,17 +92,16 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    await this.prismaService.refreshToken.delete({
+    const tokens = await this.generateTokens(payload.id,payload.email);
+    await this.prismaService.refreshToken.deleteMany({
       where: {
-        id: stored.id,
+        userId: payload.id,
       },
     });
 
-    const tokens = await this.generateTokens(payload.id,payload.email);
-
     await this.prismaService.refreshToken.create({
         data:{
-            userId:stored.userId,
+            userId:payload.id,
             tokenHash,
             expiresAt:new Date(Date.now() + refreshExpiersTime * 24 * 60 * 60 * 1000),
             }
@@ -126,7 +125,16 @@ export class AuthService {
         });
     }
 
-    async getProfile(){}
+    async getProfile(userId:number){
+        const user = await this.prismaService.user.findUnique({
+            where:{
+                id:userId
+            },include:{
+                adresses:true
+            }
+        });
+        return user
+    }
 
 
     private async generateTokens(userId: number,email: string,) {

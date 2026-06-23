@@ -4,15 +4,21 @@ import { AuthController } from './auth/auth.controller';
 import { PrismaModule } from 'src/dependence/prisma/prisma.module';
 import { AddressService } from './address/address.service';
 import { AddressController } from './address/address.controller';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { DeleteAuthCookieInterceptor } from './interceptor/deleteCookie.interceptor';
+import { RefreshTokenGuard } from 'src/guards/refresh-token/refresh-token.guard';
 
 @Module({
   imports:[PrismaModule],
-  providers: [AuthService, AddressService,{
+  providers: [AuthService, AddressService,
+    {
     provide:APP_INTERCEPTOR,
     useClass:DeleteAuthCookieInterceptor
-  }],
+    },{
+      provide:APP_GUARD,
+      useClass:RefreshTokenGuard
+    }
+  ],
   controllers: [AuthController, AddressController]
 })
 export class UserModule {}
