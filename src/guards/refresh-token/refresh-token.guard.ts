@@ -21,7 +21,6 @@ export class RefreshTokenGuard implements CanActivate {
         const user = await this.prismaService.user.findUnique({where:{id:payload.id}});
   
         if(!user) return false;
-        console.log(user)
         return true;
       }catch(err){
         return false;

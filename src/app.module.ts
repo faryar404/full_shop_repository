@@ -23,9 +23,6 @@ import { AccessTokenGuard } from './guards/access-token/access-token.guard';
     provide:APP_GUARD,
     useClass:AuthGuard
   },{
-    provide:APP_GUARD,
-    useClass:AccessTokenGuard
-  },{
     provide:APP_INTERCEPTOR,
     useClass:AuthCookieInterceptor
   }],
