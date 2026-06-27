@@ -62,8 +62,10 @@ export class OrderController {
 
   @Role(UserType.ADMIN)
   @Get("admin/orders/:id")
-  async getAdminOrder() {
-    return this.orderService.editOrderStatus();
+  async getAdminOrder(
+    @Param("id" , ParseIntPipe) orderId:number
+  ):Promise<OrdersResponseDto> {
+    return this.orderService.getAdminOrder(orderId);
   }
 
 

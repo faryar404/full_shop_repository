@@ -357,8 +357,85 @@ export class OrderService {
 
 
   //مشاهده جزئیات دقیق یک سفارش برای پردازش توسط ادمین
-  async getAdminOrder() {
+  async getAdminOrder(orderId:number):Promise<OrdersResponseDto> {
     try {
+
+      const order = await this.prisma.order.findUnique({
+        where:{id:orderId},
+        select: {
+                id: true,
+                userId: true,
+                totalAmount: true,
+                status: true,
+                paymentStatus: true,
+                shippingAddress: true,
+                trackingCode: true,
+                createdAt: true,
+                updatedAt: true,
+                // اطلاعات کاربر
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                        address: true,
+                    }
+                },
+                // آیتم‌های سفارش
+                orderItems: {
+                    select: {
+                        id: true,
+                        productId: true,
+                        quantity: true,
+                        price: true,
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                images: true,
+                                price: true,
+                                description: true,
+                                category: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                // اطلاعات پرداخت
+                payment: {
+                    select: {
+                        id: true,
+                        amount: true,
+                        paymentMethod: true,
+                        paymentDate: true,
+                        transactionId: true,
+                        status: true,
+                    }
+                },
+                // اطلاعات ارسال
+                shipment: {
+                    select: {
+                        id: true,
+                        trackingNumber: true,
+                        shippingCompany: true,
+                        estimatedDelivery: true,
+                        deliveredAt: true,
+                        status: true,
+                    }
+                }
+            },
+      })
+
+      if(!order) throw new NotFoundException;
+
+      return new OrdersResponseDto(order);
+
+
     } catch (error) {
       console.error(
         'خطا در مشاهده جزئیات دقیق یک سفارش برای پردازش توسط ادمین',
