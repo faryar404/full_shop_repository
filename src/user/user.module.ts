@@ -14,9 +14,6 @@ import { RefreshTokenGuard } from 'src/guards/refresh-token/refresh-token.guard'
     {
     provide:APP_INTERCEPTOR,
     useClass:DeleteAuthCookieInterceptor
-    },{
-      provide:APP_GUARD,
-      useClass:RefreshTokenGuard
     }
   ],
   controllers: [AuthController, AddressController]

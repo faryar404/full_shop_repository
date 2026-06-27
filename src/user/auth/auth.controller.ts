@@ -20,6 +20,7 @@ export class AuthController {
     }
 
     @Post('register')
+    @SetAuthCookie()
     register(
         @Body() body:RegisterDto
     ){

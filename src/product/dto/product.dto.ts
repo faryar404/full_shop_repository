@@ -1,5 +1,5 @@
 import { Decimal } from "@prisma/client/runtime/library";
-import { IsArray, IsNotEmpty, IsString } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 
 export class ProductsResponseDto{
@@ -30,13 +30,9 @@ export class ProductResponseDto{
 }
 
 export class CreateProductDto{
-    @IsString()
+    @IsNumber()
     @IsNotEmpty()
-    category!:string;
-
-    @IsString()
-    @IsNotEmpty()
-    slug!: string;
+    categoryId!:number;
 
     @IsString()
     @IsNotEmpty()
@@ -46,8 +42,19 @@ export class CreateProductDto{
     description!:string;
 
     @IsArray()
-    images!:{url:string}[];
+    images!:{url: string;isPrimary?: boolean;sortOrder?: number;}[];
 
     @IsArray()
-    variants!:{price:Decimal,discountPrice:Decimal|null,stock:number}[];
+    variants!:{ price: Decimal, discountPrice?:Decimal,sku: string, stock: number,  attributeValueIds: number[] }[];
+}
+
+export class UpdateProductDto{
+    @IsOptional()
+    variants?: { 
+        price: Decimal;
+        discountPrice?:Decimal;
+        sku: string;
+        stock: number;
+        attributeValueIds: number[];
+    };
 }

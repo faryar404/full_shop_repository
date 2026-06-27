@@ -11,11 +11,17 @@ export class CategoryService {
         return this.prismaService.category.findMany()
     }
 
-    async createCategory({name,parentId,slug}:CreateCategoryParam){
-        const checkCategory = await this.prismaService.category.findMany({
-            where:{name}
+    getParentCategories(){
+        return this.prismaService.category.findMany({
+            where:{parentId:null}
         });
-        if (checkCategory.length) throw new ConflictException("This category allready exist.")
+    }
+
+    async createCategory({name,parentId,slug}:CreateCategoryParam){
+        const checkCategory = await this.prismaService.category.findUnique({
+            where:{slug}
+        });
+        if (checkCategory) throw new ConflictException("This category allready exist.")
         
         await this.prismaService.category.create({
             data:{name,parentId,slug}
@@ -24,23 +30,23 @@ export class CategoryService {
         return this.getCategories()
     }
 
-    async updateCategory(categoryId:number,UpdateCategoryParam){
+    async updateCategory(slug:string,UpdateCategoryParam){
         const checkCategory = await this.prismaService.category.findUnique({
-            where:{id:categoryId}
+            where:{slug}
         });
-        if(!checkCategory) throw new NotFoundException;
-
+        if (checkCategory) throw new ConflictException("This category allready exist.")
+        
         const category = await this.prismaService.category.update({
-            where:{id:categoryId},
+            where:{slug},
             data:{...UpdateCategoryParam}
         });
 
         return category
     }
 
-    async deleteCategory(categoryId:number){
+    async deleteCategory(slug:string){
         await this.prismaService.category.delete({
-            where:{id:categoryId}
+            where:{slug}
         });
 
         return this.getCategories()

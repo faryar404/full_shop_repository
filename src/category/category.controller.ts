@@ -14,6 +14,11 @@ export class CategoryController {
         return this.categoryService.getCategories()
     }
 
+    @Get('parent')
+    getParentCategories(){
+        return this.categoryService.getParentCategories()
+    }
+
     @Post()
     @UseGuards(AccessTokenGuard)
     @Role(UserRole.ADMIN)
@@ -21,20 +26,20 @@ export class CategoryController {
         return this.categoryService.createCategory(body)
     }
 
-    @Patch(':id')
+    @Patch(':slug')
     @UseGuards(AccessTokenGuard)
     @Role(UserRole.ADMIN)
     updateCategory(
         @Body() body:UpdateCategoryDto,
-        @Param('id' , ParseIntPipe) categoryId:number
+        @Param('slug') slug:string
     ){
-        return this.categoryService.updateCategory(categoryId,body)
+        return this.categoryService.updateCategory(slug,body)
     }
 
-    @Delete(':id')
+    @Delete(':slug')
     @UseGuards(AccessTokenGuard)
     @Role(UserRole.ADMIN)
-    deleteCategory(@Param('id',ParseIntPipe) categoryId:number){
-        return this.categoryService.deleteCategory(categoryId)
+    deleteCategory(@Param('slug') slug:string){
+        return this.categoryService.deleteCategory(slug)
     }
 }

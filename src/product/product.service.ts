@@ -75,52 +75,12 @@ export class ProductService {
         return new ProductResponseDto(fetchProduct)
     }
 
-    // async createProduct({category,description,imageUrls,title,variants}:CreateProductParam){
-    //     const slug = slugify(title,{lower: true,strict: true});
-    //     console.log("slug: " , slug)
-    //     const categorySlug = slugify(category,{lower: true,strict: true});
-
-    //     const checkProduct = await this.prismaService.product.findUnique({
-    //         where:{slug}
-    //     });
-    //     if(checkProduct) this.updateProduct()
-    //     const checkcategory = await this.prismaService.category.findUnique({where:{slug:categorySlug}});
-    //     if(!checkcategory) throw new HttpException('Category not founded',500)
-
-    //     const product = await this.prismaService.product.create({
-    //         data:{title,description,slug,categoryId:checkcategory.id}
-    //     });
-
-    //     // create image urls for product
-    //     imageUrls.forEach(async(url)=>{
-    //         await this.prismaService.productImage.create({
-    //             data:{url,productId:product.id}
-    //         });
-    //     });
-
-    //     variants.forEach(async(variant)=>{
-    //         await this.prismaService.productVariant.create({
-    //             data:{productId:product.id,price:variant.price,sku:variant.sku,stock:variant.stock,}
-    //         });
-    //         let attributeId = Array;
-    //         const attributesId = variant.attributes.forEach(async(att)=>{
-    //             const attribute = await this.prismaService.attributeValue.create({
-    //                 data:{attribute:{connectOrCreate:
-    //                     {where:{name:att.attribute},create:{name:att.attribute}}
-    //                 },value:att.value}
-    //             });
-
-    //             // attributeId.apply(attribute.id);
-    //         })
-    //     });
-    // }
     async createProduct(dto: CreateProductParam) {
-        const category =
-            await this.prismaService.category.findUnique({
-                where: {
-                    id: dto.categoryId,
-                },
-            });
+        const category = await this.prismaService.category.findUnique({
+            where: {
+                id: dto.categoryId,
+            },
+        });
 
         if (!category) throw new BadRequestException('Category not found');
 
@@ -145,22 +105,15 @@ export class ProductService {
                         data: {
                             title: dto.title,
                             slug,
-                            description:
-                                dto.description,
-                            categoryId:
-                                dto.categoryId,
-
+                            description:dto.description,
+                            categoryId:dto.categoryId,
                             images: {
                                 create:
                                     dto.images.map(
                                         (image) => ({
                                             url: image.url,
-                                            isPrimary:
-                                                image.isPrimary ??
-                                                false,
-                                            sortOrder:
-                                                image.sortOrder ??
-                                                0,
+                                            isPrimary:image.isPrimary ?? false,
+                                            sortOrder:image.sortOrder ?? 0,
                                         }),
                                     ),
                             },
@@ -168,36 +121,21 @@ export class ProductService {
                     });
 
                 for (const variant of dto.variants) {
-                    const createdVariant =
-                        await tx.productVariant.create({
-                            data: {
-                                productId:
-                                    product.id,
-
-                                sku: variant.sku,
-
-                                price: variant.price,
-
-                                discountPrice:
-                                    variant.discountPrice,
-
-                                stock:
-                                    variant.stock,
-                            },
-                        });
+                    const createdVariant = await tx.productVariant.create({
+                        data: {
+                            productId:product.id,
+                            sku: variant.sku,
+                            price: variant.price,
+                            discountPrice:variant.discountPrice,
+                            stock:variant.stock,
+                        },
+                    });
 
                     await tx.variantAttribute.createMany({
-                        data:
-                            variant.attributeValueIds.map(
-                                (
-                                    attributeValueId,
-                                ) => ({
-                                    variantId:
-                                        createdVariant.id,
-
-                                    attributeValueId,
-                                }),
-                            ),
+                        data:variant.attributeValueIds.map((attributeValueId) => ({
+                            variantId:createdVariant.id,
+                            attributeValueId,
+                        })),
                     });
                 }
 
@@ -208,9 +146,7 @@ export class ProductService {
 
                     include: {
                         category: true,
-
                         images: true,
-
                         variants: {
                             include: {
                                 attributes: {
@@ -230,11 +166,34 @@ export class ProductService {
         );
     }
 
-    
+    updateProduct(dto:UpdateProductParam){ }
 
-    updateProduct(){ }
+    async deleteProduct(slug:string){
+        const product = await this.prismaService.product.findUnique({
+            where:{slug}
+        });
+        if(!product) throw new NotFoundException;
 
-    deleteProduct(){ }
+        await this.prismaService.$transaction(async(tx)=>{
+            await tx.productImage.deleteMany({
+                where:{productId:product.id}
+            });
+            await tx.productVariant.deleteMany({
+                where:{productId:product.id}
+            });
+            await tx.product.deleteMany({
+                where:{id:product.id}
+            });
+            await tx.variantAttribute.deleteMany({
+                where:{variant:{productId:product.id}}
+            });
+        });
+        return {
+            message:"product succeefully deleted",
+            status:200
+        }
+    }
+
     private async generateSlug(
             title: string,
         ) {
@@ -267,8 +226,26 @@ interface CreateProductParam {
     categoryId: number;
     title: string;
     description: string;
-    images: {url: string;isPrimary?: boolean;sortOrder?: number;}[];
-    variants: { price: Decimal, discountPrice?:Decimal,sku: string, stock: number,  attributeValueIds: number[] }[];
+    images: {
+        url: string;
+        isPrimary?: boolean;
+        sortOrder?: number;
+    }[];
+    variants: { 
+        price: Decimal;
+        discountPrice?:Decimal;
+        sku: string;
+        stock: number;
+        attributeValueIds: number[];
+    }[];
 }
 
-interface UpdateProductParam { }
+interface UpdateProductParam {
+    variants?: { 
+        price: Decimal;
+        discountPrice?:Decimal;
+        sku: string;
+        stock: number;
+        attributeValueIds: number[];
+    };
+}

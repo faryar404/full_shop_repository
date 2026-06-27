@@ -1,6 +1,6 @@
-import { Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ProductService } from './product.service';
-import { ProductsResponseDto } from './dto/product.dto';
+import { CreateProductDto, ProductsResponseDto, UpdateProductDto } from './dto/product.dto';
 import { Role } from 'src/dependence/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { AccessTokenGuard } from 'src/guards/access-token/access-token.guard';
@@ -24,15 +24,22 @@ export class ProductController {
     @Post()
     @Role(UserRole.ADMIN)
     @UseGuards(AccessTokenGuard)
-    createProduct(){}
+    createProduct(@Body() body:CreateProductDto){
+        return this.productService.createProduct(body)
+    }
 
     @Patch(':id')
     @Role(UserRole.ADMIN)
     @UseGuards(AccessTokenGuard)
-    updateProduct(){}
+    updateProduct(@Body() body:UpdateProductDto){
+        return this.productService.updateProduct(body)
+    }
 
-    @Delete(':id')
+    //not correct
+    @Delete(':slug')
     @Role(UserRole.ADMIN)
     @UseGuards(AccessTokenGuard)
-    deleteProduct(){}
+    deleteProduct(@Param('slug')slug:string){
+        return this.productService.deleteProduct(slug)
+    }
 }
