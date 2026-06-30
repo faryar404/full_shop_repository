@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpdateCouponDto } from './dto/update-coupon.dto';
 
@@ -49,8 +49,39 @@ export class CouponService {
 
 
   //دریافت لیست کدهای تخفیف عمومی و فعال
-  async getCoupons() {
+  async getActiveCoupons():Promise<CouponResponseDto[]> {
     try {
+
+      const now = new Date();
+
+      const coupons = await this.prisma.coupon.findMany({
+        where:{isActive:true},
+        select: {
+                    id: true,
+                    code: true,
+                    discountType: true,
+                    discountValue: true,
+                    minOrderAmount: true,
+                    maxDiscountAmount: true,
+                    startDate: true,
+                    endDate: true,
+                    usageLimit: true,
+                    usageCount: true,
+                    isActive: true,
+                    description: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+        orderBy: {
+              createdAt: 'desc'
+        }
+      })
+
+      if(!coupons || coupons.length===0) throw new NotFoundException;
+
+      return coupons.map(coupon => new CouponResponseDto(coupon));
+
+
     } catch (error) {
       console.error('خطا در دریافت لیست کدهای تخفیف عمومی و فعال', error);
 
@@ -91,8 +122,36 @@ export class CouponService {
 
 
   //دریافت لیست تمامی کدهای تخفیف (فعال و غیرفعال): توسط ادمین
-  async getAllCouponsByAdmin() {
+  async getAllCouponsByAdmin():Promise<CouponResponseDto[]> {
     try {
+
+      const coupons = await this.prisma.coupon.findMany({
+        select: {
+                    id: true,
+                    code: true,
+                    discountType: true,
+                    discountValue: true,
+                    minOrderAmount: true,
+                    maxDiscountAmount: true,
+                    startDate: true,
+                    endDate: true,
+                    usageLimit: true,
+                    usageCount: true,
+                    isActive: true,
+                    description: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
+
+      if(!coupons || coupons.length===0) throw new NotFoundException;
+
+      return coupons.map(coupon => new CouponResponseDto(coupon));
+
+      
     } catch (error) {
       console.error(
         'خطا در دریافت لیست تمامی کدهای تخفیف (فعال و غیرفعال): توسط ادمین',

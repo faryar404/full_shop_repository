@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
@@ -12,6 +12,7 @@ import { Role } from 'src/dependence/decorators/roles.decorator';
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
+
   @Post("payments/checkout")
   async paymentCheckout() {
     return this.paymentService.paymentCheckout();
@@ -21,15 +22,20 @@ export class PaymentController {
 
 
   @Get("payments/:id/status")
-  async paymentStatus() {
-    return this.paymentService.paymentStatus();
+  async paymentStatus(
+    @Param("id" , ParseIntPipe) paymentId:number,
+    @User() user:UserInfo
+  ):Promise<PaymentStatusResponseDto> {
+    return this.paymentService.paymentStatus(user.id , paymentId);
   }
 
 
 
   @Get("payments/history")
-  async paymentHistory() {
-    return this.paymentService.paymentHistory();
+  async paymentHistory(
+    @User() user:UserInfo
+  ):Promise<PaymentHistoryResponseDto[]> {
+    return this.paymentService.paymentHistory(user.id);
   }
 
 
@@ -44,7 +50,9 @@ export class PaymentController {
 
   @Role(UserType.ADMIN)
   @Get("admin/payments")
-  async getAllPayments() {
+  async getAllPayments(
+    @User() user:UserInfo
+  ):Promise<PaymentResponseDto[]> {
     return this.paymentService.getAllPayments();
   }
 
@@ -52,8 +60,11 @@ export class PaymentController {
 
   @Role(UserType.ADMIN)
   @Get("admin/payments/:id")
-  async getPaymentById() {
-    return this.paymentService.getPaymentById();
+  async getPaymentById(
+    @Param("id" , ParseIntPipe) paymentId:number,
+    @User() user:UserInfo
+  ):Promise<PaymentResponseDto> {
+    return this.paymentService.getPaymentById(paymentId);
   }
 
 

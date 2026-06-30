@@ -1,0 +1,45 @@
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { ProductService } from './product.service';
+import { CreateProductDto, ProductsResponseDto, UpdateProductDto } from './dto/product.dto';
+import { Role } from 'src/dependence/decorators/roles.decorator';
+import { UserRole } from '@prisma/client';
+import { AccessTokenGuard } from 'src/guards/access-token/access-token.guard';
+
+@Controller('v1/product')
+export class ProductController {
+    constructor(private readonly productService:ProductService){}
+
+    @Get()
+    getProducts():Promise<ProductsResponseDto[]>{
+        return this.productService.getProducts()
+    }
+
+    @Get(':slug')
+    getProductBySlug(
+        @Param('slug') slug:string
+    ){
+        return this.productService.getProductBySlug(slug)
+    }
+
+    @Post()
+    @Role(UserRole.ADMIN)
+    @UseGuards(AccessTokenGuard)
+    createProduct(@Body() body:CreateProductDto){
+        return this.productService.createProduct(body)
+    }
+
+    @Patch(':id')
+    @Role(UserRole.ADMIN)
+    @UseGuards(AccessTokenGuard)
+    updateProduct(@Body() body:UpdateProductDto){
+        return this.productService.updateProduct(body)
+    }
+
+    //not correct
+    @Delete(':slug')
+    @Role(UserRole.ADMIN)
+    @UseGuards(AccessTokenGuard)
+    deleteProduct(@Param('slug')slug:string){
+        return this.productService.deleteProduct(slug)
+    }
+}

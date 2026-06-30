@@ -29,8 +29,8 @@ export class CouponController {
 
   
   @Get("coupons")
-  async getCoupons() {
-    return this.couponService.getCoupons();
+  async getActiveCoupons():Promise<CouponResponseDto[]> {
+    return this.couponService.getActiveCoupons();
   }
 
 
@@ -45,7 +45,9 @@ export class CouponController {
 
   @Role(UserType.ADMIN)
   @Get("admin/coupons")
-  async getAllCouponsByAdmin() {
+  async getAllCouponsByAdmin(
+    @User() user:UserInfo
+  ):Promise<CouponResponseDto[]> {
     return this.couponService.getAllCouponsByAdmin();
   }
 

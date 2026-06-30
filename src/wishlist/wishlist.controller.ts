@@ -38,8 +38,10 @@ export class WishlistController {
 
   @Role(UserType.ADMIN)
   @Get("admin/wishlist/analytics")
-  async getAdminWishlist() {
-    return this.wishlistService.getAdminWishlist();
+  async getWishlistAnalytics(
+    @User() user:UserInfo
+  ):Promise<WishlistResponseDto> {
+    return this.wishlistService.getWishlistAnalytics();
   }
 
 }

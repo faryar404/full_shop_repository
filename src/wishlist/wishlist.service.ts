@@ -125,8 +125,9 @@ export class WishlistService {
 
 
   //دریافت گزارش محبوب‌ترین محصولات توسط ادمین در ویش لیست
-  async getAdminWishlist() {
+  async getWishlistAnalytics():Promise<WishlistResponseDto> {
     try {
+
     } catch (error) {
       console.error(
         'خطا در دریافت گزارش محبوب‌ترین محصولات توسط ادمین در ویش لیست',
